@@ -71,6 +71,8 @@ canvas { display: block; width: 100%; height: 160px; background: #FAFAF8; touch-
 #pantallaExito .icono { font-size: 56px; margin-bottom: 16px; }
 #pantallaExito h2 { color: #006873; font-size: 19px; margin-bottom: 10px; }
 #pantallaExito p { color: #555; font-size: 14px; line-height: 1.6; }
+.btn-whatsapp-exito { background: #25D366; color: #fff; border: none; padding: 13px 22px; border-radius: 11px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.btn-whatsapp-exito:hover { background: #1fb959; }
 
 /* ERROR */
 #pantallaError { display: none; text-align: center; padding: 60px 20px; }
@@ -157,7 +159,11 @@ canvas { display: block; width: 100%; height: 160px; background: #FAFAF8; touch-
   <div id="pantallaExito">
     <div class="icono">🦊✅</div>
     <h2>¡Contrato aceptado!</h2>
-    <p>Tu aceptación se envió automáticamente a <strong>hola@zorronotelolleves.com</strong>. No hace falta que hagas nada más. 🦊</p>
+    <p>Tu aceptación se envió automáticamente a <strong>hola@zorronotelolleves.com</strong>. Se te abrió WhatsApp con un mensaje para el salón — solo tocá "Enviar" ahí para confirmar. 🦊</p>
+    <div style="margin-top:22px">
+      <p style="margin-bottom:10px">¿No se abrió WhatsApp? Tocá acá:</p>
+      <button class="btn-whatsapp-exito" onclick="avisarWhatsapp()">📲 Abrir WhatsApp</button>
+    </div>
   </div>
 
 </div>
@@ -167,6 +173,7 @@ canvas { display: block; width: 100%; height: 160px; background: #FAFAF8; touch-
 
 <script>
 const EMAIL_DESTINO = 'hola@zorronotelolleves.com';
+const WHATSAPP_SALON = '5491122546284'; // 15 2254-6284 en formato internacional (54 9 11 2254-6284)
 
 // =====================================================================
 // CONFIGURACIÓN DE ENVÍO AUTOMÁTICO (EmailJS)
@@ -237,6 +244,15 @@ const CLAUSULA_IMAGEN = `Nos reservamos el derecho de usar libremente las fotogr
 
 const CONDICIONES_PARTE2 = `El salón no garantiza grupo electrógeno, con lo cual ante un corte de luz general previo al inicio del evento, se reprogramará el mismo a una fecha disponible. No se devuelven las señas ni pagos realizados. Si el evento se cancela, puede reprogramarse dentro de un año desde la fecha original abonando una nueva seña. El monto ya abonado se considerará solo si la fecha cancelada es ocupada por otro evento. El valor base será actualizado al presupuesto correspondiente de la nueva fecha elegida. No se permite piñatas ni decoración con papel picado, confetti, serpentinas, espumas, silbatos, pinturas. Los niños menores de 1 año deberán estar bajo el cuidado y responsabilidad de un adulto responsable, ajeno al salón. Cualquier modificación al contrato original por parte del cliente, deberá dejarse asentado bajo solicitud escrita vía WhatsApp.`;
 
+// Mismo listado de adicionales que en cargar-contrato (catering y torta se contratan aparte, no están acá)
+const ADICIONALES = [
+  { v: 'extra_homenajeado', t: 'Homenajeado/a extra' },
+  { v: 'media_hora_extra',  t: 'Media hora extra' },
+  { v: 'maquillaje',        t: 'Maquillaje Artístico Profesional' },
+  { v: 'magia',             t: 'Show de Magia' },
+  { v: 'globologia',        t: 'Globología' }
+];
+
 let contratoData = {};
 
 function formatFecha(val) {
@@ -268,7 +284,13 @@ function cargarVistaCliente(data) {
   html += `<p><strong>Consumición:</strong></p><ul>`;
   if (c.consumicionNinos) html += `<li><em>Niños:</em> ${c.consumicionNinos}</li>`;
   html += `<li><em>Adultos:</em> ${c.consumicionAdultos}</li></ul>`;
-  if (data.o) html += `<p><strong>Adicionales / Notas:</strong> ${data.o}</p>`;
+  const nombresAdicionales = (data.ad || []).map(v => (ADICIONALES.find(a => a.v === v) || {}).t).filter(Boolean);
+  if (nombresAdicionales.length || data.o) {
+    html += `<p><strong>Adicionales / Notas:</strong></p><ul>`;
+    nombresAdicionales.forEach(t => html += `<li>${t}</li>`);
+    if (data.o) html += `<li>${data.o}</li>`;
+    html += `</ul>`;
+  }
   html += `<hr style="margin:12px 0;border:none;border-top:1px solid #ddd">`;
   html += `<p><strong>Condiciones de contratación:</strong></p><p>${CONDICIONES_PARTE1}</p>`;
   html += `<p><em>📸 Sobre fotos y videos del evento, ver la sección de abajo.</em></p>`;
@@ -319,6 +341,10 @@ function enviarContrato() {
   const baseTexto = (c.bases && (c.bases.find(x => x.v === contratoData.b) || {}).t) || '';
   const derechoImagen = derechoImagenEl.value === 'acepto' ? 'Sí, acepta el uso de fotos/videos' : 'No acepta el uso de fotos/videos';
 
+  // Se abre WhatsApp en el momento mismo del toque (para que el navegador no lo bloquee como popup),
+  // en paralelo a que el mail se mande solo por atrás.
+  avisarWhatsapp();
+
   const btn = document.getElementById('btnEnviar');
 
   function irPorMail() {
@@ -333,6 +359,7 @@ HORARIO: ${contratoData.h || ''}
 HOMENAJEADO/A: ${contratoData.hm || ''}
 NOMBRE DE QUIEN RESERVA: ${contratoData.n || ''}
 BASE CONTRATADA: ${baseTexto}
+ADICIONALES: ${(contratoData.ad || []).map(v => (ADICIONALES.find(a => a.v === v) || {}).t).filter(Boolean).join(', ')}
 OBSERVACIONES: ${contratoData.o || ''}
 
 FOTOS Y VIDEOS: ${derechoImagen}
@@ -367,6 +394,7 @@ Nota: esta aceptación es a modo de conformidad ágil dentro de esta plataforma 
     horario: contratoData.h || '',
     homenajeado: contratoData.hm || '',
     nombre_reserva: contratoData.n || '',
+    adicionales: (contratoData.ad || []).map(v => (ADICIONALES.find(a => a.v === v) || {}).t).filter(Boolean).join(', '),
     observaciones: contratoData.o || '',
     base: baseTexto,
     derechos_imagen: derechoImagen,
@@ -391,6 +419,16 @@ function mostrarToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ---- AVISO OPCIONAL POR WHATSAPP AL SALÓN ----
+function avisarWhatsapp() {
+  const c = CONTRATOS[contratoData.t] || {};
+  const fechaStr = formatFecha(contratoData.f) || contratoData.f || '';
+  const texto = encodeURIComponent(
+    `¡Hola! Acepté el contrato de mi evento en Zorro, No Te Lo Lleves! 🦊\n\nEvento: ${c.label || ''}\nHomenajeado/a: ${contratoData.hm || ''}\nFecha: ${fechaStr}\n\n(Ya envié la aceptación desde la página, esto es solo un aviso)`
+  );
+  window.open(`https://wa.me/${WHATSAPP_SALON}?text=${texto}`, '_blank');
 }
 
 // ---- INIT ----
