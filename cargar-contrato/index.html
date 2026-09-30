@@ -33,8 +33,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #F7F5F0; color: #
 .fcol2 { grid-template-columns: 1fr 1fr; }
 .fcol1 { grid-template-columns: 1fr; }
 label { display: block; font-size: 11px; font-weight: 700; color: #006873; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-input, select, textarea { width: 100%; padding: 10px 12px; border: 1.5px solid #E0DDD5; border-radius: 9px; font-size: 14px; color: #1A1A18; background: #FAFAF8; outline: none; font-family: inherit; transition: border-color .2s; }
-textarea { resize: vertical; min-height: 70px; }
+input, select { width: 100%; padding: 10px 12px; border: 1.5px solid #E0DDD5; border-radius: 9px; font-size: 14px; color: #1A1A18; background: #FAFAF8; outline: none; font-family: inherit; transition: border-color .2s; }
 input:focus, select:focus { border-color: #006873; background: #fff; }
 select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23006873' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; }
 
@@ -107,7 +106,10 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
       <div><label>Horario de inicio</label><input type="time" id="horarioEvento"></div>
     </div>
     <div class="fgrid fcol2" style="margin-top:12px">
+      <div><label>Nombre del/a homenajeado/a</label><input type="text" id="nombreHomenaje" placeholder="Ej: Valentina"></div>
       <div><label>Nombre de quien reserva</label><input type="text" id="nombreReserva" placeholder="Nombre y apellido"></div>
+    </div>
+    <div class="fgrid fcol2" style="margin-top:12px">
       <div id="baseWrap"><label>Base contratada</label>
         <select id="baseContratada">
           <option value="">Seleccioná...</option>
@@ -121,14 +123,16 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
     <div class="card-title">📝 Observaciones / Adicionales</div>
     <div class="aviso">💡 Lo que escribas acá aparece en el contrato como nota adicional. Dejalo vacío si no hay nada que sumar.</div>
     <div class="fgrid fcol1">
-      <div><textarea id="observaciones" rows="3" placeholder="Ej: Suma Maquillaje Artístico Profesional + $15.000"></textarea></div>
+      <div><textarea id="observaciones" rows="3" placeholder="Ej: Suma Maquillaje Artístico Profesional + $15.000" style="width:100%;padding:10px 12px;border:1.5px solid #E0DDD5;border-radius:9px;font-size:14px;color:#1A1A18;background:#FAFAF8;outline:none;font-family:inherit;resize:vertical"></textarea></div>
     </div>
   </div>
+
+  <div class="aviso" style="background:#EAF5F6;border-color:#7DD4D8;color:#006873">💡 El cliente ya no completa ningún dato: va a ver el contrato con estos datos y solo va a tener que leer y tocar un botón para aceptar (más la opción de fotos/videos en redes). Por eso es importante que cargues bien los nombres acá.</div>
 
   <!-- CONTRATO -->
   <div class="card">
     <div class="card-title">📄 Vista previa del contrato</div>
-    <div class="aviso">⚠️ Revisá el contrato antes de generar el link. El cliente lo va a leer, firmar y enviar desde su propio dispositivo.</div>
+    <div class="aviso">⚠️ Revisá el contrato antes de generar el link. El cliente solo lo va a leer y aceptar con un botón desde su propio dispositivo.</div>
     <div class="contrato-body" id="contratoTexto"></div>
   </div>
 
@@ -140,7 +144,7 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 <div class="modal-overlay" id="modalCompartir">
   <div class="modal-box">
     <h3>Link para el cliente</h3>
-    <p>Enviaselo por WhatsApp o copialo. El cliente va a leer el contrato, firmar y mandarlo directo a Zorro.</p>
+    <p>Enviaselo por WhatsApp o copialo. El cliente solo va a tener que leer el contrato y tocar un botón para aceptarlo — no completa ningún dato.</p>
     <div class="link-box" id="linkCompartir"></div>
     <div class="modal-btns">
       <button class="btn-copy" onclick="copiarLink()">Copiar link</button>
@@ -172,9 +176,15 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 // =====================================================================
 const RECEPTOR_URL = (function() {
   const path = location.pathname;
-  const idx = path.lastIndexOf('/cargar-contrato');
-  const base = idx >= 0 ? path.substring(0, idx) : path.replace(/\/[^/]*$/, '');
-  return location.origin + base + '/firmar-contrato/';
+  const sinIndex = path.replace(/index\.html$/, '');
+  const idxCarpeta = sinIndex.lastIndexOf('/cargar-contrato/');
+  if (idxCarpeta >= 0) {
+    // Sitio en GitHub Pages con estructura de carpetas: /cargar-contrato/ y /firmar-contrato/
+    const base = sinIndex.substring(0, idxCarpeta);
+    return location.origin + base + '/firmar-contrato/';
+  }
+  // Prueba local con archivos sueltos: cargar-contrato.html y firmar-contrato.html en la misma carpeta
+  return location.href.replace(/[^/]*$/, 'firmar-contrato.html').split('?')[0];
 })();
 
 document.getElementById('configBar').innerHTML =
@@ -224,7 +234,13 @@ const CONTRATOS = {
   }
 };
 
-const CONDICIONES = `El anfitrión podrá acceder al salón 15 minutos antes y tendrá tolerancia de retirarse hasta 30 minutos después del evento; se cobrará extra si se excede este tiempo. El ingreso de los invitados y la activación de los servicios comenzarán puntualmente en el horario establecido. Se necesita un camarero/a cada 20 adultos y un coordinador/a cada 15 niños. Por favor, considerar el personal incluido en el servicio para contratar staff extra si es necesario. En el caso de no ser contratado, aunque no esté presente el día del evento, se cobrará de todas formas ya que el staff del momento asumirá las funciones correspondientes. Los invitados adicionales pasada la base elegida, se abonan el día del evento. No se compensan cifras de adultos y niños. El valor base del evento queda congelado para festejar en la fecha contratada. No así, los precios de las propuestas "adicionales/extras" (tales como Maquillaje Artístico Profesional, Show de Magia, etc.), los cuales se ajustarán al valor vigente de la fecha de festejo. Si optan por la contratación de servicios de catering debe realizarse con antelación directo al contacto ofrecido de proveedores. Por cuestiones de seguro y responsabilidad, no se permite el acceso a servicios externos proporcionados por individuos no vinculados al salón. Nos reservamos el derecho de usar libremente las fotografías y videos del evento. El material fotográfico, obsequio del salón, no será objeto de reclamo ni asumiremos responsabilidad si se perdiera por problemas técnicos. El salón no garantiza grupo electrógeno, con lo cual ante un corte de luz general previo al inicio del evento, se reprogramará el mismo a una fecha disponible. No se devuelven las señas ni pagos realizados. Si el evento se cancela, puede reprogramarse dentro de un año desde la fecha original abonando una nueva seña. El monto ya abonado se considerará solo si la fecha cancelada es ocupada por otro evento. El valor base será actualizado al presupuesto correspondiente de la nueva fecha elegida. No se permite piñatas ni decoración con papel picado, confetti, serpentinas, espumas, silbatos, pinturas. Los niños menores de 1 año deberán estar bajo el cuidado y responsabilidad de un adulto responsable, ajeno al salón. Cualquier modificación al contrato original por parte del cliente, deberá dejarse asentado bajo solicitud escrita vía WhatsApp.`;
+const CONDICIONES_PARTE1 = `El anfitrión podrá acceder al salón 15 minutos antes y tendrá tolerancia de retirarse hasta 30 minutos después del evento; se cobrará extra si se excede este tiempo. El ingreso de los invitados y la activación de los servicios comenzarán puntualmente en el horario establecido. Se necesita un camarero/a cada 20 adultos y un coordinador/a cada 15 niños. Por favor, considerar el personal incluido en el servicio para contratar staff extra si es necesario. En el caso de no ser contratado, aunque no esté presente el día del evento, se cobrará de todas formas ya que el staff del momento asumirá las funciones correspondientes. Los invitados adicionales pasada la base elegida, se abonan el día del evento. No se compensan cifras de adultos y niños. El valor base del evento queda congelado para festejar en la fecha contratada. No así, los precios de las propuestas "adicionales/extras" (tales como Maquillaje Artístico Profesional, Show de Magia, etc.), los cuales se ajustarán al valor vigente de la fecha de festejo. Si optan por la contratación de servicios de catering debe realizarse con antelación directo al contacto ofrecido de proveedores. Por cuestiones de seguro y responsabilidad, no se permite el acceso a servicios externos proporcionados por individuos no vinculados al salón.`;
+
+const CLAUSULA_IMAGEN = `Nos reservamos el derecho de usar libremente las fotografías y videos del evento, incluyendo su publicación en las redes sociales del salón (Instagram, historias, etc.). El material fotográfico, obsequio del salón, no será objeto de reclamo ni asumiremos responsabilidad si se perdiera por problemas técnicos.`;
+
+const CONDICIONES_PARTE2 = `El salón no garantiza grupo electrógeno, con lo cual ante un corte de luz general previo al inicio del evento, se reprogramará el mismo a una fecha disponible. No se devuelven las señas ni pagos realizados. Si el evento se cancela, puede reprogramarse dentro de un año desde la fecha original abonando una nueva seña. El monto ya abonado se considerará solo si la fecha cancelada es ocupada por otro evento. El valor base será actualizado al presupuesto correspondiente de la nueva fecha elegida. No se permite piñatas ni decoración con papel picado, confetti, serpentinas, espumas, silbatos, pinturas. Los niños menores de 1 año deberán estar bajo el cuidado y responsabilidad de un adulto responsable, ajeno al salón. Cualquier modificación al contrato original por parte del cliente, deberá dejarse asentado bajo solicitud escrita vía WhatsApp.`;
+
+const CONDICIONES = CONDICIONES_PARTE1 + ' ' + CLAUSULA_IMAGEN + ' ' + CONDICIONES_PARTE2;
 
 let tipoActual = null;
 
@@ -251,7 +267,7 @@ function elegirTipo(tipo) {
 
   document.getElementById('formContainer').style.display = '';
   actualizarContrato();
-  ['nombreReserva','fechaEvento','horarioEvento','baseContratada','observaciones'].forEach(id => {
+  ['nombreHomenaje','nombreReserva','fechaEvento','horarioEvento','baseContratada','observaciones'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', actualizarContrato);
     if (el) el.addEventListener('change', actualizarContrato);
@@ -278,13 +294,14 @@ function actualizarContrato() {
   const baseTexto = baseSel.options[baseSel.selectedIndex]?.text || '[ base a completar ]';
 
   let html = `<h3>${c.label}</h3>`;
-  html += `<p>Entre <strong>${campo('nombreReserva','[ Nombre de quien reserva ]')}</strong> (DNI y dirección los completa el cliente al firmar), en adelante <strong>EL/LA CLIENTE</strong>, y <strong>ZORRO, NO TE LO LLEVES!</strong>, Av. Triunvirato 3662, Villa Urquiza, CABA, en adelante <strong>EL SALÓN</strong>, se acuerda lo siguiente:</p>`;
+  html += `<p>Entre <strong>${campo('nombreReserva','[ nombre de quien reserva ]')}</strong>, en adelante <strong>EL/LA CLIENTE</strong>, y <strong>ZORRO, NO TE LO LLEVES!</strong>, Av. Triunvirato 3662, Villa Urquiza, CABA, en adelante <strong>EL SALÓN</strong>, se acuerda lo siguiente:</p>`;
 
   const fecha = document.getElementById('fechaEvento').value;
   const fechaStr = formatFecha(fecha);
   const hora = document.getElementById('horarioEvento').value || '[ horario ]';
 
   html += `<p><strong>Tipo de evento:</strong> ${c.label}</p>`;
+  html += `<p><strong>Homenajeado/a:</strong> ${campo('nombreHomenaje','[ nombre del homenajeado/a ]')}</p>`;
   html += `<p><strong>Fecha:</strong> ${fechaStr ? `<span class="campo">${fechaStr}</span>` : '<span class="campo" style="color:#ccc">[ fecha ]</span>'}</p>`;
   html += `<p><strong>Horario:</strong> <span class="campo">${hora}</span></p>`;
   html += `<p><strong>Duración:</strong> ${c.duracion}</p>`;
@@ -295,12 +312,12 @@ function actualizarContrato() {
   html += `<li><em>Adultos:</em> ${c.consumicionAdultos}</li></ul>`;
 
   const obs = document.getElementById('observaciones').value.trim();
-  if (obs) {
-    html += `<p><strong>Adicionales / Notas:</strong> ${obs}</p>`;
-  }
+  if (obs) html += `<p><strong>Adicionales / Notas:</strong> ${obs}</p>`;
 
   html += `<hr style="margin:12px 0;border:none;border-top:1px solid #ddd">`;
-  html += `<p><strong>Condiciones de contratación:</strong></p><p>${CONDICIONES}</p>`;
+  html += `<p><strong>Condiciones de contratación:</strong></p><p>${CONDICIONES_PARTE1}</p>`;
+  html += `<p style="background:#FFF8F5;border-radius:6px;padding:8px;border:1px dashed #FDDCC8"><em>📸 Uso de fotos/videos:</em> ${CLAUSULA_IMAGEN}</p>`;
+  html += `<p>${CONDICIONES_PARTE2}</p>`;
 
   document.getElementById('contratoTexto').innerHTML = html;
 }
@@ -312,6 +329,7 @@ function recopilarDatos() {
     t: tipoActual,
     f: document.getElementById('fechaEvento').value,
     h: document.getElementById('horarioEvento').value,
+    hm: document.getElementById('nombreHomenaje').value.trim(),
     b: baseSel.value,
     n: document.getElementById('nombreReserva').value.trim(),
     o: document.getElementById('observaciones').value.trim()
@@ -319,7 +337,6 @@ function recopilarDatos() {
 }
 
 let ultimoLink = '';
-let ultimoLinkLargo = '';
 
 async function acortarLink(url) {
   try {
@@ -338,15 +355,14 @@ async function abrirCompartir() {
   const d = recopilarDatos();
   if (!d.t || !d.f) { mostrarToast('Completá el tipo y fecha del evento'); return; }
   if (!d.b) { mostrarToast('Elegí la base contratada'); return; }
+  if (!d.hm) { mostrarToast('Completá el nombre del/a homenajeado/a'); return; }
+  if (!d.n) { mostrarToast('Completá el nombre de quien reserva'); return; }
 
   const encoded = btoa(encodeURIComponent(JSON.stringify(d)));
-  ultimoLinkLargo = `${RECEPTOR_URL}?c=${encoded}`;
-  ultimoLink = ultimoLinkLargo;
-
-  document.getElementById('linkCompartir').textContent = 'Acortando el link...';
+  const largo = `${RECEPTOR_URL}?c=${encoded}`;
+  document.getElementById('linkCompartir').textContent = 'Generando link corto...';
   document.getElementById('modalCompartir').style.display = 'flex';
-
-  ultimoLink = await acortarLink(ultimoLinkLargo);
+  ultimoLink = await acortarLink(largo);
   document.getElementById('linkCompartir').textContent = ultimoLink;
 }
 
@@ -368,7 +384,7 @@ function enviarWhatsapp() {
   const d = recopilarDatos();
   const c = CONTRATOS[d.t];
   const fechaStr = formatFecha(d.f) || d.f;
-  const texto = encodeURIComponent(`¡Hola! Te compartimos el contrato de tu evento en Zorro, No Te Lo Lleves! 🦊\n\nEvento: ${c.label}\nFecha: ${fechaStr}\n\nIngresá al siguiente link para leer el contrato, firmarlo y enviarlo:\n${ultimoLink}`);
+  const texto = encodeURIComponent(`¡Hola! Te compartimos el contrato de tu evento en Zorro, No Te Lo Lleves! 🦊\n\nEvento: ${c.label}\nFecha: ${fechaStr}\n\nIngresá al siguiente link para leer el contrato y aceptarlo con un botón:\n${ultimoLink}`);
   window.open(`https://wa.me/?text=${texto}`, '_blank');
 }
 
