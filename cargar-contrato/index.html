@@ -57,6 +57,8 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .adicional-stepper button:hover { border-color: #006873; }
 .adicional-stepper button:disabled { opacity: .35; cursor: not-allowed; }
 .adicional-stepper .cantidad { min-width: 16px; text-align: center; font-size: 13px; font-weight: 700; color: #1A1A18; }
+.adicional-grupo-titulo { font-size: 11px; font-weight: 700; color: #006873; text-transform: uppercase; letter-spacing: .04em; margin: 10px 0 2px; }
+.adicional-grupo-titulo:first-child { margin-top: 0; }
 
 /* MODAL COMPARTIR */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; }
@@ -262,20 +264,56 @@ const CONDICIONES_PARTE2 = `El salón no garantiza grupo electrógeno, con lo cu
 const CONDICIONES = CONDICIONES_PARTE1 + ' ' + CLAUSULA_IMAGEN + ' ' + CONDICIONES_PARTE2;
 
 // ---- ADICIONALES / EXTRAS (botonera tipo calculadora) ----
-// Catering y torta NO están acá: se contratan aparte, fuera del salón.
-const ADICIONALES = [
-  { v: 'extra_homenajeado', t: 'Homenajeado/a extra' },
-  { v: 'media_hora_extra',  t: 'Media hora extra' },
-  { v: 'maquillaje',        t: 'Maquillaje Artístico Profesional' },
-  { v: 'magia',             t: 'Show de Magia' },
-  { v: 'globologia',        t: 'Globología' }
+// Tomado de https://presupuestos.zorronotelolleves.com/ — Catering de comida y Torta temática
+// NO están acá porque se contratan aparte, con un proveedor externo, no con el salón.
+const ADICIONALES_GRUPOS = [
+  {
+    titulo: '🎭 Personajes y shows',
+    items: [
+      { v: 'magia',            t: 'Show de Magia',          max: 3 },
+      { v: 'burbujas',         t: 'Show de Burbujas',       max: 3 },
+      { v: 'magia_burbujas',   t: 'Magia + Burbujas',       max: 3 },
+      { v: 'titeres',          t: 'Show de Títeres',        max: 3 },
+      { v: 'globologia',       t: 'Globología',             max: 3 }
+    ]
+  },
+  {
+    titulo: '🎨 Maquillaje y glitter',
+    items: [
+      { v: 'maquillaje',           t: 'Maquillaje Artístico',                    max: 3 },
+      { v: 'maquillaje_glitter',   t: 'Maquillaje + Glitter',                    max: 3 },
+      { v: 'maquillaje_premium',   t: 'Maquillaje Premium + Glitter + Tatuajes', max: 3 }
+    ]
+  },
+  {
+    titulo: '🍿 Snacks y bebidas',
+    items: [
+      { v: 'pochoclos',           t: 'Pochoclos',                          max: 5 },
+      { v: 'hielo_libre',         t: 'Hielo libre',                        max: 1 },
+      { v: 'menu_celiaco',        t: 'Menú celíaco (consultar cantidad)',  max: 10 },
+      { v: 'bebida_libre_adulto', t: 'Bebida libre por adulto',            max: 60 }
+    ]
+  },
+  {
+    titulo: '👥 Por cantidad',
+    items: [
+      { v: 'nino_adicional',      t: 'Niño/a adicional',                 max: 40 },
+      { v: 'adulto_adicional',    t: 'Adulto adicional',                 max: 60 },
+      { v: 'homenajeado_extra',   t: 'Homenajeado/a extra',              max: 5 },
+      { v: 'hora_extra',          t: 'Hora extra',                       max: 3 },
+      { v: 'media_hora_extra',    t: 'Media hora extra',                 max: 4 },
+      { v: 'coordinador_extra',   t: 'Coordinador/a o animador/a extra', max: 5 },
+      { v: 'camarero_extra',      t: 'Camarero/a extra',                 max: 5 }
+    ]
+  }
 ];
+const ADICIONALES = ADICIONALES_GRUPOS.flatMap(g => g.items);
 
 let adicionalesCantidades = {}; // { codigo: cantidad }
 
-function cambiarCantidadAdicional(v, delta) {
+function cambiarCantidadAdicional(v, delta, max) {
   const actual = adicionalesCantidades[v] || 0;
-  const nueva = Math.max(0, Math.min(20, actual + delta));
+  const nueva = Math.max(0, Math.min(max, actual + delta));
   if (nueva === 0) delete adicionalesCantidades[v];
   else adicionalesCantidades[v] = nueva;
   renderAdicionales();
@@ -285,20 +323,28 @@ function cambiarCantidadAdicional(v, delta) {
 function renderAdicionales() {
   const grid = document.getElementById('adicionalesGrid');
   grid.innerHTML = '';
-  ADICIONALES.forEach(a => {
-    const cant = adicionalesCantidades[a.v] || 0;
-    const fila = document.createElement('div');
-    fila.className = 'adicional-fila' + (cant > 0 ? ' activo' : '');
-    fila.innerHTML = `
-      <span class="nombre">${a.t}</span>
-      <span class="adicional-stepper">
-        <button type="button" ${cant === 0 ? 'disabled' : ''} data-accion="menos">−</button>
-        <span class="cantidad">${cant}</span>
-        <button type="button" data-accion="mas">+</button>
-      </span>`;
-    fila.querySelector('[data-accion="menos"]').onclick = () => cambiarCantidadAdicional(a.v, -1);
-    fila.querySelector('[data-accion="mas"]').onclick = () => cambiarCantidadAdicional(a.v, 1);
-    grid.appendChild(fila);
+
+  ADICIONALES_GRUPOS.forEach(grupo => {
+    const titulo = document.createElement('div');
+    titulo.className = 'adicional-grupo-titulo';
+    titulo.textContent = grupo.titulo;
+    grid.appendChild(titulo);
+
+    grupo.items.forEach(a => {
+      const cant = adicionalesCantidades[a.v] || 0;
+      const fila = document.createElement('div');
+      fila.className = 'adicional-fila' + (cant > 0 ? ' activo' : '');
+      fila.innerHTML = `
+        <span class="nombre">${a.t}</span>
+        <span class="adicional-stepper">
+          <button type="button" ${cant === 0 ? 'disabled' : ''} data-accion="menos">−</button>
+          <span class="cantidad">${cant}</span>
+          <button type="button" ${cant >= a.max ? 'disabled' : ''} data-accion="mas">+</button>
+        </span>`;
+      fila.querySelector('[data-accion="menos"]').onclick = () => cambiarCantidadAdicional(a.v, -1, a.max);
+      fila.querySelector('[data-accion="mas"]').onclick = () => cambiarCantidadAdicional(a.v, 1, a.max);
+      grid.appendChild(fila);
+    });
   });
 }
 renderAdicionales();
@@ -393,6 +439,34 @@ function actualizarContrato() {
   document.getElementById('contratoTexto').innerHTML = html;
 }
 
+// ---- CODIFICACIÓN COMPACTA DEL LINK ----
+// Códigos cortos para achicar el link al máximo (deben ser IGUALES en firmar-contrato.html)
+const TIPO_CODIGOS = { cumple: 'A', cumple912: 'B', desayuno: 'C', adultos: 'D' };
+
+// Convierte los datos a un array posicional (sin nombres de campo) y usa códigos cortos
+// para tipo/fecha/hora/adicionales. Los textos libres (nombres, observaciones) quedan igual.
+function empaquetarCorto(d) {
+  const tCod = TIPO_CODIGOS[d.t] || d.t;
+  const fCod = (d.f || '').replace(/-/g, '');   // 2026-12-01 -> 20261201
+  const hCod = (d.h || '').replace(':', '');    // 16:00 -> 1600
+  const adCod = (d.ad || []).map(item => {
+    const idx = ADICIONALES.findIndex(a => a.v === item.v);
+    return idx >= 0 ? [idx, item.q] : null;
+  }).filter(Boolean);
+  return [tCod, fCod, hCod, d.hm, d.n, d.o, d.b, adCod];
+}
+
+// Codifica en base64 seguro para URL, respetando bien los acentos/ñ (antes se
+// perdía espacio doble-codificando el texto, lo que triplicaba el largo del link).
+function codificarDatos(obj) {
+  const json = JSON.stringify(obj);
+  const utf8 = new TextEncoder().encode(json);
+  let binary = '';
+  utf8.forEach(b => binary += String.fromCharCode(b));
+  const b64 = btoa(binary);
+  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 // ---- RECOPILAR + GENERAR LINK ----
 function recopilarDatos() {
   const baseSel = document.getElementById('baseContratada');
@@ -457,7 +531,7 @@ async function abrirCompartir() {
   if (!d.hm) { mostrarToast('Completá el nombre del/a homenajeado/a'); return; }
   if (!d.n) { mostrarToast('Completá el nombre de quien reserva'); return; }
 
-  const encoded = btoa(encodeURIComponent(JSON.stringify(d)));
+  const encoded = codificarDatos(empaquetarCorto(d));
   const largo = `${RECEPTOR_URL}?c=${encoded}`;
   document.getElementById('linkCompartir').textContent = 'Generando link corto...';
   document.getElementById('modalCompartir').style.display = 'flex';
