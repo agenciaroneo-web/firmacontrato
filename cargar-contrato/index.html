@@ -48,11 +48,15 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .btn-primary { width: 100%; background: #fa6f2c; color: #fff; border: none; padding: 15px; border-radius: 13px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; }
 .btn-primary:hover { background: #e55e1e; }
 
-/* BOTONERA DE ADICIONALES */
-.adicional-btn { background: #FAFAF8; border: 1.5px solid #E0DDD5; color: #3A3A38; padding: 10px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; text-align: center; line-height: 1.3; }
-.adicional-btn:hover { border-color: #fa6f2c; }
-.adicional-btn.activo { background: #fa6f2c; border-color: #fa6f2c; color: #fff; }
-.adicional-btn .precio { display: block; font-size: 10.5px; font-weight: 400; opacity: .85; margin-top: 2px; }
+/* BOTONERA DE ADICIONALES (con contador +/-) */
+.adicional-fila { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1.5px solid #E0DDD5; border-radius: 10px; background: #FAFAF8; transition: all .15s; }
+.adicional-fila.activo { border-color: #fa6f2c; background: #FFF4EC; }
+.adicional-fila .nombre { font-size: 12.5px; font-weight: 600; color: #3A3A38; }
+.adicional-stepper { display: flex; align-items: center; gap: 8px; }
+.adicional-stepper button { width: 26px; height: 26px; border-radius: 7px; border: 1.5px solid #D0CDC5; background: #fff; font-size: 15px; font-weight: 700; color: #006873; cursor: pointer; line-height: 1; }
+.adicional-stepper button:hover { border-color: #006873; }
+.adicional-stepper button:disabled { opacity: .35; cursor: not-allowed; }
+.adicional-stepper .cantidad { min-width: 16px; text-align: center; font-size: 13px; font-weight: 700; color: #1A1A18; }
 
 /* MODAL COMPARTIR */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; }
@@ -131,7 +135,7 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
   <div class="card">
     <div class="card-title">➕ Adicionales / Extras</div>
     <div class="aviso">💡 Tocá los que sumen a este evento. Catering y torta no están acá porque se contratan aparte.</div>
-    <div class="tipo-grid" id="adicionalesGrid" style="grid-template-columns:1fr 1fr"></div>
+    <div style="display:flex;flex-direction:column;gap:8px" id="adicionalesGrid"></div>
   </div>
 
   <!-- OBSERVACIONES -->
@@ -241,8 +245,7 @@ const CONTRATOS = {
   adultos: {
     label: 'Bautismo / Comunión / Baby Shower / Evento de Adultos',
     bases: [
-      { v: 'base1', t: 'Base 1 — 10 niños / 40 adultos · 1 coordinador + 2 camarero/as' },
-      { v: 'base3', t: 'Base 3 — 10 niños / 40 adultos · No incluye comida ni bebida de niños' }
+      { v: 'base3', t: 'Base 3 — 10 niños / 40 adultos · 1 coordinador + 2 camarero/as' }
     ],
     duracion: '2hs 30m + 30 min tolerancia',
     consumicionNinos: null,
@@ -268,24 +271,34 @@ const ADICIONALES = [
   { v: 'globologia',        t: 'Globología' }
 ];
 
-let adicionalesSeleccionados = [];
+let adicionalesCantidades = {}; // { codigo: cantidad }
+
+function cambiarCantidadAdicional(v, delta) {
+  const actual = adicionalesCantidades[v] || 0;
+  const nueva = Math.max(0, Math.min(20, actual + delta));
+  if (nueva === 0) delete adicionalesCantidades[v];
+  else adicionalesCantidades[v] = nueva;
+  renderAdicionales();
+  actualizarContrato();
+}
 
 function renderAdicionales() {
   const grid = document.getElementById('adicionalesGrid');
   grid.innerHTML = '';
   ADICIONALES.forEach(a => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'adicional-btn' + (adicionalesSeleccionados.includes(a.v) ? ' activo' : '');
-    btn.textContent = a.t;
-    btn.onclick = () => {
-      const i = adicionalesSeleccionados.indexOf(a.v);
-      if (i >= 0) adicionalesSeleccionados.splice(i, 1);
-      else adicionalesSeleccionados.push(a.v);
-      renderAdicionales();
-      actualizarContrato();
-    };
-    grid.appendChild(btn);
+    const cant = adicionalesCantidades[a.v] || 0;
+    const fila = document.createElement('div');
+    fila.className = 'adicional-fila' + (cant > 0 ? ' activo' : '');
+    fila.innerHTML = `
+      <span class="nombre">${a.t}</span>
+      <span class="adicional-stepper">
+        <button type="button" ${cant === 0 ? 'disabled' : ''} data-accion="menos">−</button>
+        <span class="cantidad">${cant}</span>
+        <button type="button" data-accion="mas">+</button>
+      </span>`;
+    fila.querySelector('[data-accion="menos"]').onclick = () => cambiarCantidadAdicional(a.v, -1);
+    fila.querySelector('[data-accion="mas"]').onclick = () => cambiarCantidadAdicional(a.v, 1);
+    grid.appendChild(fila);
   });
 }
 renderAdicionales();
@@ -360,7 +373,11 @@ function actualizarContrato() {
   html += `<li><em>Adultos:</em> ${c.consumicionAdultos}</li></ul>`;
 
   const obs = document.getElementById('observaciones').value.trim();
-  const nombresAdicionales = adicionalesSeleccionados.map(v => (ADICIONALES.find(a => a.v === v) || {}).t).filter(Boolean);
+  const nombresAdicionales = Object.entries(adicionalesCantidades).map(([v, q]) => {
+    const a = ADICIONALES.find(x => x.v === v);
+    if (!a) return null;
+    return q > 1 ? `${a.t} x${q}` : a.t;
+  }).filter(Boolean);
   if (nombresAdicionales.length || obs) {
     html += `<p><strong>Adicionales / Notas:</strong></p><ul>`;
     nombresAdicionales.forEach(t => html += `<li>${t}</li>`);
@@ -387,7 +404,7 @@ function recopilarDatos() {
     b: baseSel.value,
     n: document.getElementById('nombreReserva').value.trim(),
     o: document.getElementById('observaciones').value.trim(),
-    ad: adicionalesSeleccionados.slice()
+    ad: Object.entries(adicionalesCantidades).map(([v, q]) => ({ v, q }))
   };
 }
 
