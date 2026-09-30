@@ -6,12 +6,12 @@
 <title>Contrato de Reserva · Zorro No Te Lo Lleves!</title>
 
 <meta property="og:title" content="Contrato de Reserva - Zorro, No Te Lo Lleves!">
-<meta property="og:description" content="Completá tus datos, firmá y enviá tu contrato de reserva en pocos minutos, desde el celular.">
+<meta property="og:description" content="Leé el contrato de tu evento y aceptalo con un solo botón, desde el celular.">
 <meta property="og:image" content="/og-image-contrato.jpg">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Contrato de Reserva - Zorro, No Te Lo Lleves!">
-<meta name="twitter:description" content="Completá tus datos, firmá y enviá tu contrato de reserva en pocos minutos, desde el celular.">
+<meta name="twitter:description" content="Leé el contrato de tu evento y aceptalo con un solo botón, desde el celular.">
 <meta name="twitter:image" content="/og-image-contrato.jpg">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -50,19 +50,6 @@ input:focus { border-color: #006873; background: #fff; }
 .contrato-body ul li { margin-bottom: 5px; }
 .scroll-hint { font-size: 11px; color: #999; text-align: center; margin-bottom: 14px; }
 
-.clausula-imagen-box { background: #FFF8F5; border: 1.5px solid #FDDCC8; border-radius: 10px; padding: 14px; margin: 14px 0; transition: all .2s; }
-.clausula-imagen-box.box-aceptada { background: #EAF7EF; border-color: #9CDCB4; }
-.clausula-imagen-box.box-rechazada { background: #F5F4F0; border-color: #D0CDC5; }
-.clausula-imagen-box p { margin-bottom: 12px !important; }
-.clausula-rechazada { text-decoration: line-through; color: #999; }
-.clausula-aceptada { color: #1A1A18; }
-.tilde-verde { color: #0A7A4F; font-weight: 700; }
-.clausula-imagen-opciones { display: flex; gap: 10px; flex-wrap: wrap; }
-.opcion-imagen { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 8px; border: 1.5px solid #D0CDC5; background: #fff; cursor: pointer; color: #3A3A38; }
-.opcion-imagen input { margin: 0; accent-color: #006873; }
-.opcion-activa-acepto { border-color: #0A7A4F; background: #EAF7EF; color: #0A7A4F; }
-.opcion-activa-no-acepto { border-color: #888780; background: #F5F4F0; color: #5F5E5A; }
-
 /* FIRMA */
 .firma-label-row { font-size: 11px; font-weight: 700; color: #006873; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 7px; }
 .firma-wrap { border: 2px dashed #D0CDC5; border-radius: 11px; overflow: hidden; }
@@ -98,6 +85,19 @@ canvas { display: block; width: 100%; height: 160px; background: #FAFAF8; touch-
 @media (max-width: 500px) {
   .fcol2 { grid-template-columns: 1fr; }
 }
+
+/* CLÁUSULA DE IMAGEN */
+.clausula-imagen-box { background: #FFF8F5; border: 1.5px solid #FDDCC8; border-radius: 10px; padding: 14px; margin: 0 0 4px; transition: all .2s; }
+.clausula-imagen-box.box-aceptada { background: #EAF7EF; border-color: #9CDCB4; }
+.clausula-imagen-box.box-rechazada { background: #F5F4F0; border-color: #D0CDC5; }
+.clausula-imagen-box p { font-size: 12.5px; line-height: 1.6; color: #3A3A38; margin-bottom: 12px; }
+.clausula-rechazada { text-decoration: line-through; color: #999 !important; }
+.clausula-aceptada { color: #1A1A18 !important; }
+.tilde-verde { color: #0A7A4F; font-weight: 700; }
+.clausula-imagen-opciones { display: flex; gap: 10px; flex-wrap: wrap; }
+.opcion-imagen { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 8px; border: 1.5px solid #D0CDC5; background: #fff; cursor: pointer; color: #3A3A38; }
+.opcion-activa-acepto { border-color: #0A7A4F; background: #EAF7EF; color: #0A7A4F; }
+.opcion-activa-no-acepto { border-color: #888780; background: #F5F4F0; color: #5F5E5A; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
@@ -123,22 +123,6 @@ canvas { display: block; width: 100%; height: 160px; background: #FAFAF8; touch-
   <div id="pantallaForm" style="display:none">
     <div class="aviso-cliente" id="avisoCliente"></div>
 
-    <!-- DATOS PERSONALES DEL CLIENTE -->
-    <div class="card">
-      <div class="card-title">👤 Tus datos</div>
-      <div class="fgrid fcol2">
-        <div><label>Nombre completo</label><input type="text" id="cNombre" placeholder="Nombre y apellido"></div>
-        <div><label>DNI</label><input type="text" id="cDni" placeholder="Ej: 30.123.456"></div>
-      </div>
-      <div class="fgrid fcol2" style="margin-top:12px">
-        <div><label>Celular</label><input type="tel" id="cCel" placeholder="11 5555-5555"></div>
-        <div><label>Email</label><input type="email" id="cEmail" placeholder="correo@email.com"></div>
-      </div>
-      <div class="fgrid fcol1" style="margin-top:12px">
-        <div><label>Dirección</label><input type="text" id="cDom" placeholder="Calle, número, localidad"></div>
-      </div>
-    </div>
-
     <!-- CONTRATO PARA LEER -->
     <div class="card">
       <div class="card-title">📄 Leé el contrato</div>
@@ -146,33 +130,34 @@ canvas { display: block; width: 100%; height: 160px; background: #FAFAF8; touch-
       <div class="scroll-hint">⬆️ Desplazate para leer el contrato completo</div>
     </div>
 
-    <!-- FIRMA DEL CLIENTE -->
+    <!-- CLÁUSULA DE FOTOS/VIDEOS -->
     <div class="card">
-      <div class="card-title">✍️ Tu firma</div>
-      <div class="aviso-legal">⚠️ Esta firma digital es a modo de conformidad ágil dentro de esta plataforma. No constituye una firma electrónica o digital con validez legal certificada.</div>
-      <div class="firma-label-row">Firma</div>
-      <div class="firma-wrap" id="firmaWrapC">
-        <canvas id="firmaCanvasC"></canvas>
-        <div class="firma-bar">
-          <span class="firma-hint" id="firmaHintC">Tocá "Fijar" para habilitar la firma</span>
-          <button class="btn-limpiar" onclick="limpiarFirmaC()">Limpiar</button>
-          <button class="btn-fijar" id="btnFijarC" onclick="toggleFijarC()">📌 Fijar para firmar</button>
+      <div class="card-title">📸 Fotos y videos del evento</div>
+      <div class="clausula-imagen-box" id="clausulaImagenBox">
+        <p id="textoClausulaImagen"></p>
+        <div class="clausula-imagen-opciones">
+          <label class="opcion-imagen" id="labelAcepto">
+            <input type="radio" name="derechoImagen" value="acepto" id="radioAcepto"> Estoy de acuerdo
+          </label>
+          <label class="opcion-imagen" id="labelNoAcepto">
+            <input type="radio" name="derechoImagen" value="no_acepto" id="radioNoAcepto"> No estoy de acuerdo
+          </label>
         </div>
-      </div>
-      <div style="margin-top:14px">
-        <label>Aclaración (nombre en imprenta)</label>
-        <input type="text" id="cAclaracion" placeholder="Ej: LAURA MARTINEZ">
       </div>
     </div>
 
-    <button class="btn-primary" id="btnEnviar" onclick="enviarContrato()">✅ Firmar y enviar contrato</button>
+    <!-- ACEPTAR CONTRATO -->
+    <div class="card">
+      <div class="aviso-legal">⚠️ Al tocar el botón confirmás que leíste y aceptás las condiciones de reserva. Esta aceptación digital queda registrada con fecha y hora, a modo de conformidad ágil dentro de esta plataforma, y no constituye una firma electrónica o digital con validez legal certificada.</div>
+      <button class="btn-primary" id="btnEnviar" onclick="enviarContrato()">✅ Acepto los términos y condiciones</button>
+    </div>
   </div>
 
   <!-- PANTALLA: ÉXITO -->
   <div id="pantallaExito">
     <div class="icono">🦊✅</div>
-    <h2>¡Contrato enviado!</h2>
-    <p>Se abrió tu app de email con el contrato firmado listo para enviar a <strong>hola@zorronotelolleves.com</strong>.<br><br>Si no se abrió automáticamente, revisá que tu dispositivo tenga una app de correo configurada, o escribinos directo por WhatsApp.</p>
+    <h2>¡Contrato aceptado!</h2>
+    <p>Tu aceptación se envió automáticamente a <strong>hola@zorronotelolleves.com</strong>. No hace falta que hagas nada más. 🦊</p>
   </div>
 
 </div>
@@ -248,12 +233,10 @@ const CONTRATOS = {
 
 const CONDICIONES_PARTE1 = `El anfitrión podrá acceder al salón 15 minutos antes y tendrá tolerancia de retirarse hasta 30 minutos después del evento; se cobrará extra si se excede este tiempo. El ingreso de los invitados y la activación de los servicios comenzarán puntualmente en el horario establecido. Se necesita un camarero/a cada 20 adultos y un coordinador/a cada 15 niños. Por favor, considerar el personal incluido en el servicio para contratar staff extra si es necesario. En el caso de no ser contratado, aunque no esté presente el día del evento, se cobrará de todas formas ya que el staff del momento asumirá las funciones correspondientes. Los invitados adicionales pasada la base elegida, se abonan el día del evento. No se compensan cifras de adultos y niños. El valor base del evento queda congelado para festejar en la fecha contratada. No así, los precios de las propuestas "adicionales/extras" (tales como Maquillaje Artístico Profesional, Show de Magia, etc.), los cuales se ajustarán al valor vigente de la fecha de festejo. Si optan por la contratación de servicios de catering debe realizarse con antelación directo al contacto ofrecido de proveedores. Por cuestiones de seguro y responsabilidad, no se permite el acceso a servicios externos proporcionados por individuos no vinculados al salón.`;
 
-const CLAUSULA_IMAGEN = `Nos reservamos el derecho de usar libremente las fotografías y videos del evento. El material fotográfico, obsequio del salón, no será objeto de reclamo ni asumiremos responsabilidad si se perdiera por problemas técnicos.`;
+const CLAUSULA_IMAGEN = `Nos reservamos el derecho de usar libremente las fotografías y videos del evento, incluyendo su publicación en las redes sociales del salón (Instagram, historias, etc.). El material fotográfico, obsequio del salón, no será objeto de reclamo ni asumiremos responsabilidad si se perdiera por problemas técnicos.`;
 
 const CONDICIONES_PARTE2 = `El salón no garantiza grupo electrógeno, con lo cual ante un corte de luz general previo al inicio del evento, se reprogramará el mismo a una fecha disponible. No se devuelven las señas ni pagos realizados. Si el evento se cancela, puede reprogramarse dentro de un año desde la fecha original abonando una nueva seña. El monto ya abonado se considerará solo si la fecha cancelada es ocupada por otro evento. El valor base será actualizado al presupuesto correspondiente de la nueva fecha elegida. No se permite piñatas ni decoración con papel picado, confetti, serpentinas, espumas, silbatos, pinturas. Los niños menores de 1 año deberán estar bajo el cuidado y responsabilidad de un adulto responsable, ajeno al salón. Cualquier modificación al contrato original por parte del cliente, deberá dejarse asentado bajo solicitud escrita vía WhatsApp.`;
 
-let firmaHabilitadaC = false;
-let hayFirmaC = false;
 let contratoData = {};
 
 function formatFecha(val) {
@@ -272,11 +255,12 @@ function cargarVistaCliente(data) {
   const baseTexto = (c.bases.find(x => x.v === data.b) || {}).t || '';
 
   document.getElementById('avisoCliente').innerHTML =
-    `Hola, te compartimos el contrato para el evento <strong>${c.label}</strong><br>📅 ${fechaStr || data.f} · 🕐 ${data.h || ''}<br>Completá tus datos, firmá y enviá. 🦊`;
+    `Hola${data.n ? ' ' + data.n : ''}, te compartimos el contrato para el evento de <strong>${data.hm || c.label}</strong><br>📅 ${fechaStr || data.f} · 🕐 ${data.h || ''}<br>Leélo y aceptalo con el botón de abajo. 🦊`;
 
   let html = `<h3>${c.label}</h3>`;
-  html += `<p>Entre <strong>${data.n || '[ nombre de quien reserva ]'}</strong> (DNI y dirección los completa el cliente al firmar), en adelante <strong>EL/LA CLIENTE</strong>, y <strong>ZORRO, NO TE LO LLEVES!</strong>, Av. Triunvirato 3662, Villa Urquiza, CABA, en adelante <strong>EL SALÓN</strong>, se acuerda lo siguiente:</p>`;
+  html += `<p>Entre <strong>${data.n || '[ nombre de quien reserva ]'}</strong>, en adelante <strong>EL/LA CLIENTE</strong>, y <strong>ZORRO, NO TE LO LLEVES!</strong>, Av. Triunvirato 3662, Villa Urquiza, CABA, en adelante <strong>EL SALÓN</strong>, se acuerda lo siguiente:</p>`;
   html += `<p><strong>Tipo de evento:</strong> ${c.label}</p>`;
+  if (data.hm) html += `<p><strong>Homenajeado/a:</strong> ${data.hm}</p>`;
   html += `<p><strong>Fecha:</strong> ${fechaStr || data.f}</p>`;
   if (data.h) html += `<p><strong>Horario:</strong> ${data.h}</p>`;
   html += `<p><strong>Duración:</strong> ${c.duracion}</p>`;
@@ -287,41 +271,16 @@ function cargarVistaCliente(data) {
   if (data.o) html += `<p><strong>Adicionales / Notas:</strong> ${data.o}</p>`;
   html += `<hr style="margin:12px 0;border:none;border-top:1px solid #ddd">`;
   html += `<p><strong>Condiciones de contratación:</strong></p><p>${CONDICIONES_PARTE1}</p>`;
-
-  html += `
-    <div class="clausula-imagen-box" id="clausulaImagenBox">
-      <p id="textoClausulaImagen">${CLAUSULA_IMAGEN}</p>
-      <div class="clausula-imagen-opciones">
-        <label class="opcion-imagen" id="labelAcepto">
-          <input type="radio" name="derechoImagen" value="acepto" id="radioAcepto">
-          Estoy de acuerdo
-        </label>
-        <label class="opcion-imagen" id="labelNoAcepto">
-          <input type="radio" name="derechoImagen" value="no_acepto" id="radioNoAcepto">
-          No estoy de acuerdo
-        </label>
-      </div>
-    </div>
-  `;
-
+  html += `<p><em>📸 Sobre fotos y videos del evento, ver la sección de abajo.</em></p>`;
   html += `<p>${CONDICIONES_PARTE2}</p>`;
 
   document.getElementById('contratoCliente').innerHTML = html;
+  document.getElementById('textoClausulaImagen').textContent = CLAUSULA_IMAGEN;
 
-  document.querySelectorAll('input[name="derechoImagen"]').forEach(radio => {
-    radio.addEventListener('change', actualizarClausulaImagen);
-  });
-
-  // Pre-llenar si el admin completó datos
-  if (data.n) document.getElementById('cNombre').value = data.n;
-  if (data.d) document.getElementById('cDni').value = data.d;
-  if (data.c) document.getElementById('cCel').value = data.c;
-  if (data.e) document.getElementById('cEmail').value = data.e;
-  if (data.dm) document.getElementById('cDom').value = data.dm;
-
-  initFirmaCliente();
+  document.querySelectorAll('input[name="derechoImagen"]').forEach(r => r.addEventListener('change', actualizarClausulaImagen));
 }
 
+// ---- CLÁUSULA DE FOTOS/VIDEOS ----
 function actualizarClausulaImagen() {
   const seleccionado = document.querySelector('input[name="derechoImagen"]:checked');
   const texto = document.getElementById('textoClausulaImagen');
@@ -349,127 +308,38 @@ function actualizarClausulaImagen() {
   }
 }
 
-// ---- FIRMA CLIENTE ----
-function initFirmaCliente() {
-  const canvas = document.getElementById('firmaCanvasC');
-  const ctx = canvas.getContext('2d');
-  let dibujando = false;
-
-  function resize() {
-    const r = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = r.width * dpr; canvas.height = r.height * dpr;
-    ctx.scale(dpr, dpr);
-    ctx.strokeStyle = '#1A1A18'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  }
-  resize(); window.addEventListener('resize', resize);
-
-  function pos(e) {
-    const r = canvas.getBoundingClientRect();
-    if (e.touches) return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
-  }
-
-  canvas.addEventListener('mousedown', e => { if (!firmaHabilitadaC) return; dibujando = true; hayFirmaC = true; ctx.beginPath(); const p = pos(e); ctx.moveTo(p.x, p.y); });
-  canvas.addEventListener('mousemove', e => { if (!dibujando || !firmaHabilitadaC) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-  canvas.addEventListener('mouseup', () => dibujando = false);
-  canvas.addEventListener('mouseleave', () => dibujando = false);
-  canvas.addEventListener('touchstart', e => { if (!firmaHabilitadaC) return; e.preventDefault(); dibujando = true; hayFirmaC = true; ctx.beginPath(); const p = pos(e); ctx.moveTo(p.x, p.y); }, { passive: false });
-  canvas.addEventListener('touchmove', e => { if (!firmaHabilitadaC) return; e.preventDefault(); if (!dibujando) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }, { passive: false });
-  canvas.addEventListener('touchend', () => dibujando = false);
-}
-
-function toggleFijarC() {
-  firmaHabilitadaC = !firmaHabilitadaC;
-  const btn = document.getElementById('btnFijarC');
-  const hint = document.getElementById('firmaHintC');
-  const wrap = document.getElementById('firmaWrapC');
-  const canvas = document.getElementById('firmaCanvasC');
-  if (firmaHabilitadaC) {
-    btn.textContent = '✓ Firmando'; btn.classList.add('on');
-    wrap.classList.add('activa'); hint.textContent = 'Firmá con el dedo o el mouse';
-    canvas.style.cursor = 'crosshair'; document.body.style.overflow = 'hidden';
-  } else {
-    btn.textContent = '📌 Fijar para firmar'; btn.classList.remove('on');
-    wrap.classList.remove('activa'); hint.textContent = 'Tocá "Fijar" para habilitar la firma';
-    canvas.style.cursor = 'default'; document.body.style.overflow = '';
-  }
-}
-
-function limpiarFirmaC() {
-  const canvas = document.getElementById('firmaCanvasC');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-  hayFirmaC = false;
-}
-
 // ---- ENVIAR CONTRATO ----
-function comprimirFirma() {
-  // Reduce la firma a un ancho máximo para que el mail no pese de más
-  const original = document.getElementById('firmaCanvasC');
-  const maxW = 500;
-  const escala = Math.min(1, maxW / original.width);
-  const tmp = document.createElement('canvas');
-  tmp.width = original.width * escala;
-  tmp.height = original.height * escala;
-  const ctx = tmp.getContext('2d');
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, tmp.width, tmp.height);
-  ctx.drawImage(original, 0, 0, tmp.width, tmp.height);
-  return tmp.toDataURL('image/png');
-}
-
 function enviarContrato() {
-  const nombre = document.getElementById('cNombre').value.trim();
-  const dni = document.getElementById('cDni').value.trim();
-  const cel = document.getElementById('cCel').value.trim();
-  const email = document.getElementById('cEmail').value.trim();
-  const dom = document.getElementById('cDom').value.trim();
-  const aclaracion = document.getElementById('cAclaracion').value.trim();
   const derechoImagenEl = document.querySelector('input[name="derechoImagen"]:checked');
-
-  if (!nombre) { mostrarToast('Completá tu nombre'); return; }
-  if (!dni) { mostrarToast('Completá tu DNI'); return; }
-  if (!email) { mostrarToast('Completá tu email'); return; }
-  if (!derechoImagenEl) { mostrarToast('Tenés que indicar si estás de acuerdo con el uso de fotos y videos'); return; }
-  if (!hayFirmaC) { mostrarToast('Firmá el contrato antes de enviar'); return; }
-  if (!aclaracion) { mostrarToast('Completá la aclaración'); return; }
-
-  const derechoImagen = derechoImagenEl.value === 'acepto' ? 'Acepta' : 'No acepta';
+  if (!derechoImagenEl) { mostrarToast('Indicá si estás de acuerdo con el uso de fotos y videos'); return; }
 
   const c = CONTRATOS[contratoData.t] || {};
   const fechaStr = formatFecha(contratoData.f) || contratoData.f;
-  const fechaFirma = new Date().toLocaleString('es-AR');
+  const fechaAceptacion = new Date().toLocaleString('es-AR');
   const baseTexto = (c.bases && (c.bases.find(x => x.v === contratoData.b) || {}).t) || '';
+  const derechoImagen = derechoImagenEl.value === 'acepto' ? 'Sí, acepta el uso de fotos/videos' : 'No acepta el uso de fotos/videos';
 
   const btn = document.getElementById('btnEnviar');
 
   function irPorMail() {
-    const asunto = encodeURIComponent(`Contrato firmado - ${c.label || ''} - ${fechaStr}`);
+    const asunto = encodeURIComponent(`Contrato aceptado - ${c.label || ''} - ${fechaStr}`);
     const cuerpo = encodeURIComponent(
-`CONTRATO FIRMADO DIGITALMENTE - ZORRO NO TE LO LLEVES!
+`CONTRATO ACEPTADO DIGITALMENTE - ZORRO NO TE LO LLEVES!
 ${'='.repeat(50)}
 
 TIPO DE EVENTO: ${c.label || ''}
 FECHA: ${fechaStr}
 HORARIO: ${contratoData.h || ''}
-BASE CONTRATADA: ${baseTexto}
+HOMENAJEADO/A: ${contratoData.hm || ''}
 NOMBRE DE QUIEN RESERVA: ${contratoData.n || ''}
-${contratoData.o ? 'ADICIONALES / NOTAS: ' + contratoData.o + '\n' : ''}
-DATOS DEL CLIENTE:
-Nombre: ${nombre}
-DNI: ${dni}
-Celular: ${cel}
-Email: ${email}
-Dirección: ${dom}
+BASE CONTRATADA: ${baseTexto}
+OBSERVACIONES: ${contratoData.o || ''}
 
-Aclaración: ${aclaracion}
-Derechos de imagen: ${derechoImagen}
+FOTOS Y VIDEOS: ${derechoImagen}
 
-El cliente firmó digitalmente el contrato en: ${fechaFirma}
+El cliente aceptó digitalmente el contrato en: ${fechaAceptacion}
 
-Nota: esta firma es a modo de conformidad ágil dentro de esta plataforma y no constituye una firma electrónica o digital con validez legal certificada.
+Nota: esta aceptación es a modo de conformidad ágil dentro de esta plataforma y no constituye una firma electrónica o digital con validez legal certificada.
 `
     );
     window.location.href = `mailto:${EMAIL_DESTINO}?subject=${asunto}&body=${cuerpo}`;
@@ -480,8 +350,6 @@ Nota: esta firma es a modo de conformidad ágil dentro de esta plataforma y no c
   function mostrarExitoAutomatico() {
     document.getElementById('pantallaForm').style.display = 'none';
     document.getElementById('pantallaExito').style.display = 'block';
-    document.querySelector('#pantallaExito p').innerHTML =
-      `El contrato firmado se envió automáticamente a <strong>${EMAIL_DESTINO}</strong>. No hace falta que hagas nada más. 🦊`;
   }
 
   if (!EMAILJS_CONFIGURADO || !window.emailjs) {
@@ -497,19 +365,12 @@ Nota: esta firma es a modo de conformidad ágil dentro de esta plataforma y no c
     tipo_evento: c.label || '',
     fecha: fechaStr,
     horario: contratoData.h || '',
+    homenajeado: contratoData.hm || '',
     nombre_reserva: contratoData.n || '',
     observaciones: contratoData.o || '',
     base: baseTexto,
-    nombre: nombre,
-    dni: dni,
-    cel: cel,
-    email: email,
-    direccion: dom,
-    aclaracion: aclaracion,
     derechos_imagen: derechoImagen,
-    fecha_firma: fechaFirma,
-    firma_img: comprimirFirma(),
-    reply_to: email
+    fecha_aceptacion: fechaAceptacion
   };
 
   emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
@@ -519,7 +380,7 @@ Nota: esta firma es a modo de conformidad ágil dentro de esta plataforma y no c
     .catch(function(err) {
       console.log('Error EmailJS, se usa respaldo por mail:', err);
       btn.disabled = false;
-      btn.textContent = '✅ Firmar y enviar contrato';
+      btn.textContent = '✅ Acepto los términos y condiciones';
       mostrarToast('No se pudo enviar automáticamente, abriendo tu mail...');
       setTimeout(irPorMail, 1200);
     });
