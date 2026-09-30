@@ -48,6 +48,12 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .btn-primary { width: 100%; background: #fa6f2c; color: #fff; border: none; padding: 15px; border-radius: 13px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; }
 .btn-primary:hover { background: #e55e1e; }
 
+/* BOTONERA DE ADICIONALES */
+.adicional-btn { background: #FAFAF8; border: 1.5px solid #E0DDD5; color: #3A3A38; padding: 10px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; text-align: center; line-height: 1.3; }
+.adicional-btn:hover { border-color: #fa6f2c; }
+.adicional-btn.activo { background: #fa6f2c; border-color: #fa6f2c; color: #fff; }
+.adicional-btn .precio { display: block; font-size: 10.5px; font-weight: 400; opacity: .85; margin-top: 2px; }
+
 /* MODAL COMPARTIR */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; }
 .modal-box { background: #fff; border-radius: 16px; padding: 24px; max-width: 340px; width: 90%; }
@@ -73,6 +79,9 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
   .fcol2 { grid-template-columns: 1fr; }
 }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 </head>
 <body>
 
@@ -118,12 +127,19 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
     </div>
   </div>
 
+  <!-- ADICIONALES (BOTONERA) -->
+  <div class="card">
+    <div class="card-title">➕ Adicionales / Extras</div>
+    <div class="aviso">💡 Tocá los que sumen a este evento. Catering y torta no están acá porque se contratan aparte.</div>
+    <div class="tipo-grid" id="adicionalesGrid" style="grid-template-columns:1fr 1fr"></div>
+  </div>
+
   <!-- OBSERVACIONES -->
   <div class="card">
-    <div class="card-title">📝 Observaciones / Adicionales</div>
+    <div class="card-title">📝 Observaciones (otros, no listados arriba)</div>
     <div class="aviso">💡 Lo que escribas acá aparece en el contrato como nota adicional. Dejalo vacío si no hay nada que sumar.</div>
     <div class="fgrid fcol1">
-      <div><textarea id="observaciones" rows="3" placeholder="Ej: Suma Maquillaje Artístico Profesional + $15.000" style="width:100%;padding:10px 12px;border:1.5px solid #E0DDD5;border-radius:9px;font-size:14px;color:#1A1A18;background:#FAFAF8;outline:none;font-family:inherit;resize:vertical"></textarea></div>
+      <div><textarea id="observaciones" rows="3" placeholder="Ej: cualquier otro adicional que no esté en los botones de arriba" style="width:100%;padding:10px 12px;border:1.5px solid #E0DDD5;border-radius:9px;font-size:14px;color:#1A1A18;background:#FAFAF8;outline:none;font-family:inherit;resize:vertical"></textarea></div>
     </div>
   </div>
 
@@ -242,6 +258,38 @@ const CONDICIONES_PARTE2 = `El salón no garantiza grupo electrógeno, con lo cu
 
 const CONDICIONES = CONDICIONES_PARTE1 + ' ' + CLAUSULA_IMAGEN + ' ' + CONDICIONES_PARTE2;
 
+// ---- ADICIONALES / EXTRAS (botonera tipo calculadora) ----
+// Catering y torta NO están acá: se contratan aparte, fuera del salón.
+const ADICIONALES = [
+  { v: 'extra_homenajeado', t: 'Homenajeado/a extra' },
+  { v: 'media_hora_extra',  t: 'Media hora extra' },
+  { v: 'maquillaje',        t: 'Maquillaje Artístico Profesional' },
+  { v: 'magia',             t: 'Show de Magia' },
+  { v: 'globologia',        t: 'Globología' }
+];
+
+let adicionalesSeleccionados = [];
+
+function renderAdicionales() {
+  const grid = document.getElementById('adicionalesGrid');
+  grid.innerHTML = '';
+  ADICIONALES.forEach(a => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'adicional-btn' + (adicionalesSeleccionados.includes(a.v) ? ' activo' : '');
+    btn.textContent = a.t;
+    btn.onclick = () => {
+      const i = adicionalesSeleccionados.indexOf(a.v);
+      if (i >= 0) adicionalesSeleccionados.splice(i, 1);
+      else adicionalesSeleccionados.push(a.v);
+      renderAdicionales();
+      actualizarContrato();
+    };
+    grid.appendChild(btn);
+  });
+}
+renderAdicionales();
+
 let tipoActual = null;
 
 function elegirTipo(tipo) {
@@ -312,7 +360,13 @@ function actualizarContrato() {
   html += `<li><em>Adultos:</em> ${c.consumicionAdultos}</li></ul>`;
 
   const obs = document.getElementById('observaciones').value.trim();
-  if (obs) html += `<p><strong>Adicionales / Notas:</strong> ${obs}</p>`;
+  const nombresAdicionales = adicionalesSeleccionados.map(v => (ADICIONALES.find(a => a.v === v) || {}).t).filter(Boolean);
+  if (nombresAdicionales.length || obs) {
+    html += `<p><strong>Adicionales / Notas:</strong></p><ul>`;
+    nombresAdicionales.forEach(t => html += `<li>${t}</li>`);
+    if (obs) html += `<li>${obs}</li>`;
+    html += `</ul>`;
+  }
 
   html += `<hr style="margin:12px 0;border:none;border-top:1px solid #ddd">`;
   html += `<p><strong>Condiciones de contratación:</strong></p><p>${CONDICIONES_PARTE1}</p>`;
@@ -332,23 +386,51 @@ function recopilarDatos() {
     hm: document.getElementById('nombreHomenaje').value.trim(),
     b: baseSel.value,
     n: document.getElementById('nombreReserva').value.trim(),
-    o: document.getElementById('observaciones').value.trim()
+    o: document.getElementById('observaciones').value.trim(),
+    ad: adicionalesSeleccionados.slice()
   };
 }
 
 let ultimoLink = '';
 
+// Varios acortadores en cadena: si uno falla (red, CORS, límite) prueba el siguiente.
+// Si todos fallan, se usa el link largo como respaldo (nunca se rompe el flujo).
 async function acortarLink(url) {
-  try {
-    const resp = await fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(url));
-    if (!resp.ok) throw new Error('respuesta no ok');
-    const corto = (await resp.text()).trim();
-    if (corto.startsWith('http')) return corto;
-    throw new Error('respuesta inesperada');
-  } catch (e) {
-    console.log('No se pudo acortar el link, se usa el largo como respaldo:', e);
-    return url;
+  const intentos = [
+    async () => {
+      const r = await fetch('https://is.gd/create.php?format=simple&url=' + encodeURIComponent(url));
+      const txt = (await r.text()).trim();
+      if (!r.ok || !txt.startsWith('http')) throw new Error('is.gd: ' + txt);
+      return txt;
+    },
+    async () => {
+      const r = await fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(url));
+      const txt = (await r.text()).trim();
+      if (!r.ok || !txt.startsWith('http')) throw new Error('tinyurl: ' + txt);
+      return txt;
+    },
+    async () => {
+      const r = await fetch('https://cleanuri.com/api/v1/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'url=' + encodeURIComponent(url)
+      });
+      const data = await r.json();
+      if (!data.result_url) throw new Error('cleanuri sin resultado');
+      return data.result_url;
+    }
+  ];
+
+  for (const intento of intentos) {
+    try {
+      const corto = await intento();
+      return corto;
+    } catch (e) {
+      console.log('Acortador falló, probando el siguiente:', e);
+    }
   }
+  console.log('Ningún acortador funcionó, se usa el link largo como respaldo.');
+  return url;
 }
 
 async function abrirCompartir() {
@@ -393,6 +475,20 @@ function mostrarToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ---- CALENDARIO EN FORMATO DÍA/MES/AÑO (independiente del idioma del navegador) ----
+if (window.flatpickr) {
+  if (window.flatpickr.l10ns && window.flatpickr.l10ns.es) {
+    flatpickr.localize(flatpickr.l10ns.es);
+  }
+  flatpickr('#fechaEvento', {
+    dateFormat: 'Y-m-d',
+    altInput: true,
+    altFormat: 'd/m/Y',
+    locale: 'es',
+    onChange: function() { if (typeof actualizarContrato === 'function') actualizarContrato(); }
+  });
 }
 </script>
 </body>
