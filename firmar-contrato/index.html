@@ -230,8 +230,7 @@ const CONTRATOS = {
     label: 'Bautismo / Comunión / Baby Shower / Evento de Adultos',
     duracion: '2hs 30m + 30 min tolerancia',
     bases: [
-      { v: 'base1', t: 'Base 1 — 10 niños / 40 adultos · 1 coordinador + 2 camarero/as' },
-      { v: 'base3', t: 'Base 3 — 10 niños / 40 adultos · No incluye comida ni bebida de niños' }
+      { v: 'base3', t: 'Base 3 — 10 niños / 40 adultos · 1 coordinador + 2 camarero/as' }
     ],
     consumicionNinos: null,
     consumicionAdultos: 'Café, té y mate durante todo el evento · Refrigeración de bebidas y calentar comida · Servicio de camarero/as · Agua purificada natural · Adicional opcional: bebida libre-catering'
@@ -254,6 +253,14 @@ const ADICIONALES = [
 ];
 
 let contratoData = {};
+
+function formatAdicionales(ad) {
+  return (ad || []).map(item => {
+    const a = ADICIONALES.find(x => x.v === item.v);
+    if (!a) return null;
+    return item.q > 1 ? `${a.t} x${item.q}` : a.t;
+  }).filter(Boolean);
+}
 
 function formatFecha(val) {
   if (!val) return null;
@@ -284,7 +291,7 @@ function cargarVistaCliente(data) {
   html += `<p><strong>Consumición:</strong></p><ul>`;
   if (c.consumicionNinos) html += `<li><em>Niños:</em> ${c.consumicionNinos}</li>`;
   html += `<li><em>Adultos:</em> ${c.consumicionAdultos}</li></ul>`;
-  const nombresAdicionales = (data.ad || []).map(v => (ADICIONALES.find(a => a.v === v) || {}).t).filter(Boolean);
+  const nombresAdicionales = formatAdicionales(data.ad);
   if (nombresAdicionales.length || data.o) {
     html += `<p><strong>Adicionales / Notas:</strong></p><ul>`;
     nombresAdicionales.forEach(t => html += `<li>${t}</li>`);
@@ -359,7 +366,7 @@ HORARIO: ${contratoData.h || ''}
 HOMENAJEADO/A: ${contratoData.hm || ''}
 NOMBRE DE QUIEN RESERVA: ${contratoData.n || ''}
 BASE CONTRATADA: ${baseTexto}
-ADICIONALES: ${(contratoData.ad || []).map(v => (ADICIONALES.find(a => a.v === v) || {}).t).filter(Boolean).join(', ')}
+ADICIONALES: ${formatAdicionales(contratoData.ad).join(', ')}
 OBSERVACIONES: ${contratoData.o || ''}
 
 FOTOS Y VIDEOS: ${derechoImagen}
@@ -394,7 +401,7 @@ Nota: esta aceptación es a modo de conformidad ágil dentro de esta plataforma 
     horario: contratoData.h || '',
     homenajeado: contratoData.hm || '',
     nombre_reserva: contratoData.n || '',
-    adicionales: (contratoData.ad || []).map(v => (ADICIONALES.find(a => a.v === v) || {}).t).filter(Boolean).join(', '),
+    adicionales: formatAdicionales(contratoData.ad).join(', '),
     observaciones: contratoData.o || '',
     base: baseTexto,
     derechos_imagen: derechoImagen,
