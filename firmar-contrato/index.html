@@ -162,7 +162,7 @@ canvas { display: block; width: 100%; height: 160px; background: #FAFAF8; touch-
     <p>Tu aceptación se envió automáticamente a <strong>hola@zorronotelolleves.com</strong>. Se te abrió WhatsApp con un mensaje para el salón — solo tocá "Enviar" ahí para confirmar. 🦊</p>
     <div style="margin-top:22px">
       <p style="margin-bottom:10px">¿No se abrió WhatsApp? Tocá acá:</p>
-      <button class="btn-whatsapp-exito" onclick="avisarWhatsapp()">📲 Abrir WhatsApp</button>
+      <button class="btn-whatsapp-exito" onclick="avisarWhatsapp(ultimoDerechoImagen)">📲 Abrir WhatsApp</button>
     </div>
   </div>
 
@@ -174,6 +174,7 @@ canvas { display: block; width: 100%; height: 160px; background: #FAFAF8; touch-
 <script>
 const EMAIL_DESTINO = 'hola@zorronotelolleves.com';
 const WHATSAPP_SALON = '5491122546284'; // 15 2254-6284 en formato internacional (54 9 11 2254-6284)
+let ultimoDerechoImagen = '';
 
 // =====================================================================
 // CONFIGURACIÓN DE ENVÍO AUTOMÁTICO (EmailJS)
@@ -244,12 +245,28 @@ const CLAUSULA_IMAGEN = `Nos reservamos el derecho de usar libremente las fotogr
 const CONDICIONES_PARTE2 = `El salón no garantiza grupo electrógeno, con lo cual ante un corte de luz general previo al inicio del evento, se reprogramará el mismo a una fecha disponible. No se devuelven las señas ni pagos realizados. Si el evento se cancela, puede reprogramarse dentro de un año desde la fecha original abonando una nueva seña. El monto ya abonado se considerará solo si la fecha cancelada es ocupada por otro evento. El valor base será actualizado al presupuesto correspondiente de la nueva fecha elegida. No se permite piñatas ni decoración con papel picado, confetti, serpentinas, espumas, silbatos, pinturas. Los niños menores de 1 año deberán estar bajo el cuidado y responsabilidad de un adulto responsable, ajeno al salón. Cualquier modificación al contrato original por parte del cliente, deberá dejarse asentado bajo solicitud escrita vía WhatsApp.`;
 
 // Mismo listado de adicionales que en cargar-contrato (catering y torta se contratan aparte, no están acá)
+// Mismos códigos que en cargar-contrato (tomados de presupuestos.zorronotelolleves.com).
+// Catering y torta no están: se contratan aparte, con un proveedor externo.
 const ADICIONALES = [
-  { v: 'extra_homenajeado', t: 'Homenajeado/a extra' },
-  { v: 'media_hora_extra',  t: 'Media hora extra' },
-  { v: 'maquillaje',        t: 'Maquillaje Artístico Profesional' },
-  { v: 'magia',             t: 'Show de Magia' },
-  { v: 'globologia',        t: 'Globología' }
+  { v: 'magia',              t: 'Show de Magia' },
+  { v: 'burbujas',           t: 'Show de Burbujas' },
+  { v: 'magia_burbujas',     t: 'Magia + Burbujas' },
+  { v: 'titeres',            t: 'Show de Títeres' },
+  { v: 'globologia',         t: 'Globología' },
+  { v: 'maquillaje',         t: 'Maquillaje Artístico' },
+  { v: 'maquillaje_glitter', t: 'Maquillaje + Glitter' },
+  { v: 'maquillaje_premium', t: 'Maquillaje Premium + Glitter + Tatuajes' },
+  { v: 'pochoclos',          t: 'Pochoclos' },
+  { v: 'hielo_libre',        t: 'Hielo libre' },
+  { v: 'menu_celiaco',       t: 'Menú celíaco' },
+  { v: 'bebida_libre_adulto',t: 'Bebida libre por adulto' },
+  { v: 'nino_adicional',     t: 'Niño/a adicional' },
+  { v: 'adulto_adicional',   t: 'Adulto adicional' },
+  { v: 'homenajeado_extra',  t: 'Homenajeado/a extra' },
+  { v: 'hora_extra',         t: 'Hora extra' },
+  { v: 'media_hora_extra',   t: 'Media hora extra' },
+  { v: 'coordinador_extra',  t: 'Coordinador/a o animador/a extra' },
+  { v: 'camarero_extra',     t: 'Camarero/a extra' }
 ];
 
 let contratoData = {};
@@ -347,10 +364,11 @@ function enviarContrato() {
   const fechaAceptacion = new Date().toLocaleString('es-AR');
   const baseTexto = (c.bases && (c.bases.find(x => x.v === contratoData.b) || {}).t) || '';
   const derechoImagen = derechoImagenEl.value === 'acepto' ? 'Sí, acepta el uso de fotos/videos' : 'No acepta el uso de fotos/videos';
+  ultimoDerechoImagen = derechoImagen;
 
   // Se abre WhatsApp en el momento mismo del toque (para que el navegador no lo bloquee como popup),
   // en paralelo a que el mail se mande solo por atrás.
-  avisarWhatsapp();
+  avisarWhatsapp(derechoImagen);
 
   const btn = document.getElementById('btnEnviar');
 
@@ -429,11 +447,12 @@ function mostrarToast(msg) {
 }
 
 // ---- AVISO OPCIONAL POR WHATSAPP AL SALÓN ----
-function avisarWhatsapp() {
+function avisarWhatsapp(derechoImagenTexto) {
   const c = CONTRATOS[contratoData.t] || {};
   const fechaStr = formatFecha(contratoData.f) || contratoData.f || '';
+  const derecho = derechoImagenTexto || 'No especificado';
   const texto = encodeURIComponent(
-    `¡Hola! Acepté el contrato de mi evento en Zorro, No Te Lo Lleves! 🦊\n\nEvento: ${c.label || ''}\nHomenajeado/a: ${contratoData.hm || ''}\nFecha: ${fechaStr}\n\n(Ya envié la aceptación desde la página, esto es solo un aviso)`
+    `Hola, acepte el contrato de mi evento en Zorro, No Te Lo Lleves!\n\nEvento: ${c.label || ''}\nHomenajeado/a: ${contratoData.hm || ''}\nFecha: ${fechaStr}\nFotos y videos: ${derecho}\n\n(Ya envie la aceptacion desde la pagina, esto es solo un aviso)`
   );
   window.open(`https://wa.me/${WHATSAPP_SALON}?text=${texto}`, '_blank');
 }
