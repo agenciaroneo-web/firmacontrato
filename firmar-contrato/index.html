@@ -458,12 +458,38 @@ function avisarWhatsapp(derechoImagenTexto) {
 }
 
 // ---- INIT ----
+// ---- DECODIFICACIÓN DEL LINK COMPACTO (debe ser el reverso exacto de cargar-contrato.html) ----
+const TIPO_CODIGOS_INV = { A: 'cumple', B: 'cumple912', C: 'desayuno', D: 'adultos' };
+
+function decodificarDatos(str) {
+  let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (b64.length % 4) b64 += '=';
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const json = new TextDecoder().decode(bytes);
+  return JSON.parse(json);
+}
+
+function desempaquetarCorto(arr) {
+  const [tCod, fCod, hCod, hm, n, o, b, adCod] = arr;
+  const t = TIPO_CODIGOS_INV[tCod] || tCod;
+  const f = (fCod && fCod.length === 8) ? `${fCod.slice(0,4)}-${fCod.slice(4,6)}-${fCod.slice(6,8)}` : fCod;
+  const h = (hCod && hCod.length === 4) ? `${hCod.slice(0,2)}:${hCod.slice(2,4)}` : hCod;
+  const ad = (adCod || []).map(par => {
+    const a = ADICIONALES[par[0]];
+    return a ? { v: a.v, q: par[1] } : null;
+  }).filter(Boolean);
+  return { t, f, h, hm, n, o, b, ad };
+}
+
 window.onload = function() {
   const params = new URLSearchParams(location.search);
   const encoded = params.get('c');
   if (encoded) {
     try {
-      const data = JSON.parse(decodeURIComponent(atob(encoded)));
+      const decodificado = decodificarDatos(encoded);
+      const data = Array.isArray(decodificado) ? desempaquetarCorto(decodificado) : decodificado;
       if (data.t) { cargarVistaCliente(data); return; }
     } catch(e) { console.log('Error al decodificar', e); }
   }
