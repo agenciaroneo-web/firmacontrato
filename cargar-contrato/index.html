@@ -107,6 +107,7 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
     <button class="tipo-btn" onclick="elegirTipo('cumple')">🎂 Cumpleaños<br><small>hasta 8 años</small></button>
     <button class="tipo-btn" onclick="elegirTipo('cumple912')">🎉 Cumpleaños<br><small>9 a 12 años</small></button>
     <button class="tipo-btn" onclick="elegirTipo('desayuno')">☕ Desayuno</button>
+    <button class="tipo-btn" onclick="elegirTipo('basico')">📦 Evento Básico</button>
     <button class="tipo-btn" onclick="elegirTipo('adultos')">🌟 Bautismo / Comunión<br><small>/ Evento adultos</small></button>
   </div>
 </div>
@@ -223,6 +224,17 @@ const CONTRATOS = {
     duracion: '2hs 30m + 30 min tolerancia',
     consumicionNinos: 'Mesa salada: bocaditos de pollo + pizza + bastones de papa horneados · Mesa dulce: mini arrocitas + alfajorcitos de maicena · Bebida libre: agua saborizada + agua purificada natural',
     consumicionAdultos: 'Café, té y mate durante todo el evento · Refrigeración de bebidas y calentar comida · Servicio de camarero/as · Agua purificada natural · Adicional opcional: bebida libre-catering'
+  },
+  basico: {
+    label: 'Evento Básico',
+    bases: [
+      { v: 'base1', t: 'Base 1 — 30 niños / 20 adultos · 2 coordinadores + 1 camarero/a' },
+      { v: 'base2', t: 'Base 2 — 15 niños / 35 adultos · 1 coordinador + 2 camarero/as' }
+    ],
+    duracion: '2hs 30m + 30 min tolerancia',
+    sinConsumicion: true,
+    sinImagen: true,
+    condicionExtra: 'Toda la comida, tanto para niños como para adultos, debe estar lista para calentar y/o servir.'
   },
   cumple912: {
     label: 'Cumpleaños 9 a 12 años',
@@ -414,9 +426,11 @@ function actualizarContrato() {
   html += `<p><strong>Duración:</strong> ${c.duracion}</p>`;
   html += `<p><strong>Base contratada:</strong> <span class="campo">${baseTexto}</span></p>`;
 
-  html += `<p><strong>Consumición:</strong></p><ul>`;
-  if (c.consumicionNinos) html += `<li><em>Niños:</em> ${c.consumicionNinos}</li>`;
-  html += `<li><em>Adultos:</em> ${c.consumicionAdultos}</li></ul>`;
+  if (!c.sinConsumicion) {
+    html += `<p><strong>Consumición:</strong></p><ul>`;
+    if (c.consumicionNinos) html += `<li><em>Niños:</em> ${c.consumicionNinos}</li>`;
+    html += `<li><em>Adultos:</em> ${c.consumicionAdultos}</li></ul>`;
+  }
 
   const obs = document.getElementById('observaciones').value.trim();
   const nombresAdicionales = Object.entries(adicionalesCantidades).map(([v, q]) => {
@@ -432,8 +446,8 @@ function actualizarContrato() {
   }
 
   html += `<hr style="margin:12px 0;border:none;border-top:1px solid #ddd">`;
-  html += `<p><strong>Condiciones de contratación:</strong></p><p>${CONDICIONES_PARTE1}</p>`;
-  html += `<p style="background:#FFF8F5;border-radius:6px;padding:8px;border:1px dashed #FDDCC8"><em>📸 Uso de fotos/videos:</em> ${CLAUSULA_IMAGEN}</p>`;
+  html += `<p><strong>Condiciones de contratación:</strong></p><p>${CONDICIONES_PARTE1}${c.condicionExtra ? ' ' + c.condicionExtra : ''}</p>`;
+  if (!c.sinImagen) html += `<p style="background:#FFF8F5;border-radius:6px;padding:8px;border:1px dashed #FDDCC8"><em>📸 Uso de fotos/videos:</em> ${CLAUSULA_IMAGEN}</p>`;
   html += `<p>${CONDICIONES_PARTE2}</p>`;
 
   document.getElementById('contratoTexto').innerHTML = html;
@@ -441,7 +455,7 @@ function actualizarContrato() {
 
 // ---- CODIFICACIÓN COMPACTA DEL LINK ----
 // Códigos cortos para achicar el link al máximo (deben ser IGUALES en firmar-contrato.html)
-const TIPO_CODIGOS = { cumple: 'A', cumple912: 'B', desayuno: 'C', adultos: 'D' };
+const TIPO_CODIGOS = { cumple: 'A', cumple912: 'B', desayuno: 'C', adultos: 'D', basico: 'E' };
 
 // Convierte los datos a un array posicional (sin nombres de campo) y usa códigos cortos
 // para tipo/fecha/hora/adicionales. Los textos libres (nombres, observaciones) quedan igual.
