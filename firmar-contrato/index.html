@@ -133,7 +133,7 @@ canvas { display: block; width: 100%; height: 160px; background: #FAFAF8; touch-
     </div>
 
     <!-- CLÁUSULA DE FOTOS/VIDEOS -->
-    <div class="card">
+    <div class="card" id="cardImagen">
       <div class="card-title">📸 Fotos y videos del evento</div>
       <div class="clausula-imagen-box" id="clausulaImagenBox">
         <p id="textoClausulaImagen"></p>
@@ -205,6 +205,17 @@ const CONTRATOS = {
     ],
     consumicionNinos: 'Mesa salada: bocaditos de pollo + pizza + bastones de papa horneados · Mesa dulce: mini arrocitas + alfajorcitos de maicena · Bebida libre: agua saborizada + agua purificada natural',
     consumicionAdultos: 'Café, té y mate durante todo el evento · Refrigeración de bebidas y calentar comida · Servicio de camarero/as · Agua purificada natural · Adicional opcional: bebida libre-catering'
+  },
+  basico: {
+    label: 'Evento Básico',
+    bases: [
+      { v: 'base1', t: 'Base 1 — 30 niños / 20 adultos · 2 coordinadores + 1 camarero/a' },
+      { v: 'base2', t: 'Base 2 — 15 niños / 35 adultos · 1 coordinador + 2 camarero/as' }
+    ],
+    duracion: '2hs 30m + 30 min tolerancia',
+    sinConsumicion: true,
+    sinImagen: true,
+    condicionExtra: 'Toda la comida, tanto para niños como para adultos, debe estar lista para calentar y/o servir.'
   },
   cumple912: {
     label: 'Cumpleaños 9 a 12 años',
@@ -304,9 +315,11 @@ function cargarVistaCliente(data) {
   if (data.h) html += `<p><strong>Horario:</strong> ${data.h}</p>`;
   html += `<p><strong>Duración:</strong> ${c.duracion}</p>`;
   if (baseTexto) html += `<p><strong>Base contratada:</strong> ${baseTexto}</p>`;
-  html += `<p><strong>Consumición:</strong></p><ul>`;
-  if (c.consumicionNinos) html += `<li><em>Niños:</em> ${c.consumicionNinos}</li>`;
-  html += `<li><em>Adultos:</em> ${c.consumicionAdultos}</li></ul>`;
+  if (!c.sinConsumicion) {
+    html += `<p><strong>Consumición:</strong></p><ul>`;
+    if (c.consumicionNinos) html += `<li><em>Niños:</em> ${c.consumicionNinos}</li>`;
+    html += `<li><em>Adultos:</em> ${c.consumicionAdultos}</li></ul>`;
+  }
   const nombresAdicionales = formatAdicionales(data.ad);
   if (nombresAdicionales.length || data.o) {
     html += `<p><strong>Adicionales / Notas:</strong></p><ul>`;
@@ -315,12 +328,13 @@ function cargarVistaCliente(data) {
     html += `</ul>`;
   }
   html += `<hr style="margin:12px 0;border:none;border-top:1px solid #ddd">`;
-  html += `<p><strong>Condiciones de contratación:</strong></p><p>${CONDICIONES_PARTE1}</p>`;
-  html += `<p><em>📸 Sobre fotos y videos del evento, ver la sección de abajo.</em></p>`;
+  html += `<p><strong>Condiciones de contratación:</strong></p><p>${CONDICIONES_PARTE1}${c.condicionExtra ? ' ' + c.condicionExtra : ''}</p>`;
+  if (!c.sinImagen) html += `<p><em>📸 Sobre fotos y videos del evento, ver la sección de abajo.</em></p>`;
   html += `<p>${CONDICIONES_PARTE2}</p>`;
 
   document.getElementById('contratoCliente').innerHTML = html;
   document.getElementById('textoClausulaImagen').textContent = CLAUSULA_IMAGEN;
+  document.getElementById('cardImagen').style.display = c.sinImagen ? 'none' : '';
 
   document.querySelectorAll('input[name="derechoImagen"]').forEach(r => r.addEventListener('change', actualizarClausulaImagen));
 }
@@ -355,14 +369,14 @@ function actualizarClausulaImagen() {
 
 // ---- ENVIAR CONTRATO ----
 function enviarContrato() {
-  const derechoImagenEl = document.querySelector('input[name="derechoImagen"]:checked');
-  if (!derechoImagenEl) { mostrarToast('Indicá si estás de acuerdo con el uso de fotos y videos'); return; }
-
   const c = CONTRATOS[contratoData.t] || {};
+  const derechoImagenEl = document.querySelector('input[name="derechoImagen"]:checked');
+  if (!c.sinImagen && !derechoImagenEl) { mostrarToast('Indicá si estás de acuerdo con el uso de fotos y videos'); return; }
+
   const fechaStr = formatFecha(contratoData.f) || contratoData.f;
   const fechaAceptacion = new Date().toLocaleString('es-AR');
   const baseTexto = (c.bases && (c.bases.find(x => x.v === contratoData.b) || {}).t) || '';
-  const derechoImagen = derechoImagenEl.value === 'acepto' ? 'Sí, acepta el uso de fotos/videos' : 'No acepta el uso de fotos/videos';
+  const derechoImagen = c.sinImagen ? 'No aplica (este contrato no incluye cláusula de fotos/videos)' : (derechoImagenEl.value === 'acepto' ? 'Sí, acepta el uso de fotos/videos' : 'No acepta el uso de fotos/videos');
   ultimoDerechoImagen = derechoImagen;
 
   // Se abre WhatsApp en el momento mismo del toque (para que el navegador no lo bloquee como popup),
@@ -451,14 +465,14 @@ function avisarWhatsapp(derechoImagenTexto) {
   const fechaStr = formatFecha(contratoData.f) || contratoData.f || '';
   const derecho = derechoImagenTexto || 'No especificado';
   const texto = encodeURIComponent(
-    `Hola, acepte el contrato de mi evento en Zorro, No Te Lo Lleves!\n\nEvento: ${c.label || ''}\nHomenajeado/a: ${contratoData.hm || ''}\nFecha: ${fechaStr}\nFotos y videos: ${derecho}\n\n(Ya envie la aceptacion desde la pagina, esto es solo un aviso)`
+    `Hola, acepte el contrato de mi evento en Zorro, No Te Lo Lleves!\n\nEvento: ${c.label || ''}\nHomenajeado/a: ${contratoData.hm || ''}\nFecha: ${fechaStr}${derecho.startsWith('No aplica') ? '' : '\nFotos y videos: ' + derecho}\n\n(Ya envie la aceptacion desde la pagina, esto es solo un aviso)`
   );
   window.open(`https://wa.me/${WHATSAPP_SALON}?text=${texto}`, '_blank');
 }
 
 // ---- INIT ----
 // ---- DECODIFICACIÓN DEL LINK COMPACTO (debe ser el reverso exacto de cargar-contrato.html) ----
-const TIPO_CODIGOS_INV = { A: 'cumple', B: 'cumple912', C: 'desayuno', D: 'adultos' };
+const TIPO_CODIGOS_INV = { A: 'cumple', B: 'cumple912', C: 'desayuno', D: 'adultos', E: 'basico' };
 
 function decodificarDatos(str) {
   let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
