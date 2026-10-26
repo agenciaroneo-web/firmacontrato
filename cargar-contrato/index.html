@@ -470,15 +470,38 @@ function empaquetarCorto(d) {
   return [tCod, fCod, hCod, d.hm, d.n, d.o, d.b, adCod];
 }
 
-// Codifica en base64 seguro para URL, respetando bien los acentos/ñ (antes se
-// perdía espacio doble-codificando el texto, lo que triplicaba el largo del link).
-function codificarDatos(obj) {
-  const json = JSON.stringify(obj);
-  const utf8 = new TextEncoder().encode(json);
+// Codifica en base64 seguro para URL.
+// Formato BINARIO ultra compacto (más corto que JSON). Si algún dato no entra
+// en el formato binario, se usa el JSON como respaldo (el receptor entiende ambos).
+const BASES_COD = ['base1', 'base2', 'base3'];
+const TIPOS_ORDEN = ['A', 'B', 'C', 'D', 'E'];
+
+function bytesABase64Url(bytes) {
   let binary = '';
-  utf8.forEach(b => binary += String.fromCharCode(b));
-  const b64 = btoa(binary);
-  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function empaquetarBinario(arr) {
+  const [tCod, fCod, hCod, hm, n, o, b, ad] = arr;
+  const tIdx = TIPOS_ORDEN.indexOf(tCod);
+  const bIdx = BASES_COD.indexOf(b);
+  if (tIdx < 0 || bIdx < 0 || !/^\d{8}$/.test(fCod) || !/^\d{4}$/.test(hCod)) return null;
+  if (ad.length > 255 || ad.some(p => p[0] > 255 || p[1] > 255)) return null;
+  const dias = Math.round((Date.UTC(+fCod.slice(0,4), +fCod.slice(4,6) - 1, +fCod.slice(6,8)) - Date.UTC(2020, 0, 1)) / 86400000);
+  const min = (+hCod.slice(0,2)) * 60 + (+hCod.slice(2,4));
+  if (dias < 0 || dias > 65535) return null;
+  const texto = new TextEncoder().encode([hm, n, o].join('\0'));
+  const out = [(tIdx << 2) | bIdx, dias >> 8, dias & 255, min >> 8, min & 255, ad.length];
+  ad.forEach(p => { out.push(p[0], p[1]); });
+  return bytesABase64Url(Uint8Array.from([...out, ...texto]));
+}
+
+function codificarDatos(obj) {
+  const bin = empaquetarBinario(obj);
+  if (bin) return bin;
+  const json = JSON.stringify(obj);
+  return bytesABase64Url(new TextEncoder().encode(json));
 }
 
 // ---- RECOPILAR + GENERAR LINK ----
